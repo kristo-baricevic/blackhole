@@ -21,6 +21,7 @@ private:
     std::unordered_map<std::string, int> directions;
     bool checkPattern();
     void handleEncounter(char encounter);
+    void simulateBattle();
 };
 
 #endif

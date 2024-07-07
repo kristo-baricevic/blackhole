@@ -6,7 +6,7 @@ CXXFLAGS = -std=c++11 -Wall
 EXEC = outer_space_game
 
 # Source files
-SRCS = main.cpp BehaviorTree.cpp AStar.cpp UCS.cpp GeneticAlgorithm.cpp
+SRCS = main.cpp BehaviorTree.cpp AStar.cpp UCS.cpp GeneticAlgorithm.cpp Graphics.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
