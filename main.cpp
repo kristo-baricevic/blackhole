@@ -14,7 +14,7 @@ int main() {
     blackboard.setInEnvironment("attack_power", 20);
     blackboard.setInEnvironment("heal_amount", 20);
 
-    Map gameMap(10, 10);  // Create a 10x10 map
+    Map gameMap(100, 10);  
     BehaviorTree behaviorTree(&blackboard, &gameMap);
     
     AStar aStar;
@@ -29,6 +29,7 @@ int main() {
 
     // Display the logo once at the beginning
     displayLogo();
+    displayLargeAstronaut();
 
     while (gameRunning) {
         gameMap.display();  // Display the map
@@ -45,7 +46,7 @@ int main() {
                 break;
             case 3:
                 std::cout << "Engaging an enemy...\n";
-                behaviorTree.update();
+                behaviorTree.engageEnemy();  // Engage an enemy
                 break;
             case 4:
                 std::cout << "Fleeing from an enemy...\n";
@@ -65,12 +66,6 @@ int main() {
             ucs.allocateResources(100, 50);
             geneticAlgorithm.evolve();
         }
-
-        // Handle movement
-        std::string direction;
-        std::cout << "Enter direction to move (N/S/E/W): ";
-        std::cin >> direction;
-        gameMap.moveAstronaut(direction);
     }
 
     return 0;

@@ -10,7 +10,7 @@ Map::Map(int width, int height)
 
 void Map::display() const {
     for (int y = 0; y < height_; ++y) {
-        for (int x = 0; x < width_; ++x) {
+        for (int x = 0; x < (width_); ++x) {
             if (x == astronautX_ && y == astronautY_) {
                 displayAstronaut();
             } else {

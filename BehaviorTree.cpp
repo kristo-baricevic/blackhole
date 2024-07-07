@@ -3,11 +3,9 @@
 #include <cstdlib>
 #include <ctime>
 #include "Graphics.h"
-#include "tasks/AttackTask.hpp"
+#include "tasks/BattleTask.hpp"
 #include "tasks/ExploreTask.hpp"
-#include "tasks/HealTask.hpp"
-#include "tasks/FleeTask.hpp"
-#include "conditions/LowHealthCondition.hpp"
+#include "conditions/HealthCondition.hpp"
 
 BehaviorTree::BehaviorTree(Blackboard* blackboard, Map* map)
     : blackboard_(blackboard), map_(map) {
@@ -22,14 +20,11 @@ void BehaviorTree::update() {
         ExploreTask exploreTask(blackboard_);
         exploreTask.execute();
     } else if (action == "Attack") {
-        AttackTask attackTask(blackboard_);
-        attackTask.execute();
+        // Attack task logic if needed
     } else if (action == "Heal") {
-        HealTask healTask(blackboard_);
-        healTask.execute();
+        // Heal task logic if needed
     } else if (action == "Flee") {
-        FleeTask fleeTask(blackboard_);
-        fleeTask.execute();
+        // Flee task logic if needed
     }
 }
 
@@ -112,8 +107,9 @@ void BehaviorTree::handleEncounter(char encounter) {
             }
             break;
         case 'B':
+            displayCharacterB();
             std::cout << "You encounter Character B! Prepare for battle!\n";
-            update();  // Trigger the battle simulation
+            simulateBattle();  // Trigger the battle sequence
             break;
         case 'C':
             std::cout << "The black hole abstracts away into metaphysical madness...\n";
@@ -129,36 +125,44 @@ void BehaviorTree::handleEncounter(char encounter) {
 }
 
 void BehaviorTree::simulateBattle() {
-    displayCharacterB();
+    std::cout << "Battle begins!\n";
 
-    std::cout << "Simulating battle...\n";
+    BattleTask battleTask(blackboard_);
+    HealthCondition playerHealthCond(blackboard_, "health");
+    HealthCondition enemyHealthCond(blackboard_, "enemy_health");
 
-    int playerHealth = blackboard_->getInEnvironment<int>("health");
-    int enemyHealth = blackboard_->getInEnvironment<int>("enemy_health");
-    int playerAttack = blackboard_->getInEnvironment<int>("attack_power");
-    int enemyAttack = 15;  // This can be set via blackboard as well
+    bool playerDefeated = false;
+    bool enemyDefeated = false;
 
-    while (playerHealth > 0 && enemyHealth > 0) {
-        // Player's turn
-        enemyHealth -= playerAttack;
-        std::cout << "You attack the enemy! Enemy health: " << enemyHealth << "\n";
-        blackboard_->setInEnvironment("enemy_health", enemyHealth);
-
-        if (enemyHealth <= 0) {
+    while (!playerDefeated && !enemyDefeated) {
+        battleTask.playerTurn();
+        if (!enemyHealthCond.isHealthAboveZero()) {
+            enemyDefeated = true;
             std::cout << "You defeated the enemy!\n";
-            blackboard_->setInEnvironment("enemy_health", 100); // Reset enemy health
-            return;
+            break;
         }
 
-        // Enemy's turn
-        playerHealth -= enemyAttack;
-        std::cout << "Enemy attacks you! Your health: " << playerHealth << "\n";
-        blackboard_->setInEnvironment("health", playerHealth);
-
-        if (playerHealth <= 0) {
+        battleTask.enemyTurn();
+        if (!playerHealthCond.isHealthAboveZero()) {
+            playerDefeated = true;
             std::cout << "You were defeated by the enemy.\n";
-            blackboard_->setInEnvironment("health", 100); // Reset player health
-            return;
+            break;
         }
     }
+
+    // Reset health after the battle ends
+    if (playerDefeated) {
+        blackboard_->setInEnvironment("health", 100);
+    }
+
+    if (enemyDefeated) {
+        blackboard_->setInEnvironment("enemy_health", 100);
+    }
+}
+
+
+void BehaviorTree::engageEnemy() {
+    displayCharacterB();
+    std::cout << "Engaging an enemy! Prepare for battle!\n";
+    simulateBattle();
 }

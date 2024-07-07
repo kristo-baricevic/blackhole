@@ -13,6 +13,9 @@ public:
     BehaviorTree(Blackboard* blackboard, Map* map);
     void update();
     void exploreBlackHole();
+    void simulateBattle();
+    void engageEnemy(); 
+
 
 private:
     std::vector<std::string> behaviors;
@@ -23,7 +26,6 @@ private:
 
     bool checkPattern();
     void handleEncounter(char encounter);
-    void simulateBattle();
 };
 
 #endif // BEHAVIOR_TREE_H
