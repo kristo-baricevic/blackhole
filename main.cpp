@@ -4,9 +4,16 @@
 #include "UCS.h"
 #include "GeneticAlgorithm.h"
 #include "Graphics.h"
+#include "blackboard.hpp"
 
 int main() {
-    BehaviorTree behaviorTree;
+    Blackboard blackboard;
+    blackboard.setInEnvironment("health", 100);
+    blackboard.setInEnvironment("enemy_health", 100);
+    blackboard.setInEnvironment("attack_power", 20);
+    blackboard.setInEnvironment("heal_amount", 20);
+
+    BehaviorTree behaviorTree(&blackboard);
     AStar aStar;
     UCS ucs;
     GeneticAlgorithm geneticAlgorithm;
@@ -16,7 +23,9 @@ int main() {
 
     bool gameRunning = true;
     int choice;
-        displayLogo();
+
+    // Display the logo once at the beginning
+    displayLogo();
 
     while (gameRunning) {
         displayMenu();
@@ -56,4 +65,3 @@ int main() {
 
     return 0;
 }
-

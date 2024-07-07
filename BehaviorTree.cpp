@@ -3,34 +3,33 @@
 #include <cstdlib>
 #include <ctime>
 #include "Graphics.h"
-BehaviorTree::BehaviorTree() {
-    behaviors = { "Explore", "Gather", "Fight", "Flee", "Puzzle" };
+#include "tasks/AttackTask.hpp"
+#include "tasks/ExploreTask.hpp"
+#include "tasks/HealTask.hpp"
+#include "tasks/FleeTask.hpp"
+#include "conditions/LowHealthCondition.hpp"
+
+BehaviorTree::BehaviorTree(Blackboard* blackboard)
+    : blackboard_(blackboard) {
+    behaviors = { "Explore", "Attack", "Heal", "Flee" };
     directions = { {"N", 0}, {"S", 1}, {"E", 2}, {"W", 3} };
     std::srand(std::time(0));  // Seed for random number generation
 }
 
-Action BehaviorTree::getAction() {
-    return static_cast<Action>(std::rand() % behaviors.size());
-}
-
 void BehaviorTree::update() {
-    Action action = getAction();
-    switch(action) {
-        case EXPLORE:
-            exploreBlackHole();
-            break;
-        case GATHER:
-            std::cout << "Gathering resources...\n";
-            break;
-        case FIGHT:
-            simulateBattle();
-            break;
-        case FLEE:
-            std::cout << "Fleeing from an enemy...\n";
-            break;
-        case PUZZLE:
-            std::cout << "Solving a puzzle...\n";
-            break;
+    std::string action = behaviors[std::rand() % behaviors.size()];
+    if (action == "Explore") {
+        ExploreTask exploreTask(blackboard_);
+        exploreTask.execute();
+    } else if (action == "Attack") {
+        AttackTask attackTask(blackboard_);
+        attackTask.execute();
+    } else if (action == "Heal") {
+        HealTask healTask(blackboard_);
+        healTask.execute();
+    } else if (action == "Flee") {
+        FleeTask fleeTask(blackboard_);
+        fleeTask.execute();
     }
 }
 
@@ -52,11 +51,13 @@ void BehaviorTree::exploreBlackHole() {
         }
     }
 
+    // Randomly choose between displayBlackhole2 and displayBlackhole3
     if (std::rand() % 2 == 0) {
         displayBlackhole2();
     } else {
         displayBlackhole3();
     }
+
     std::cout << "You see blackness.\n";
 }
 
@@ -124,29 +125,34 @@ void BehaviorTree::handleEncounter(char encounter) {
 
 void BehaviorTree::simulateBattle() {
     displayCharacterB();
-    std::cout << "You have encountered a wild black hole jelly...\n";
 
-    int playerHealth = 100;
-    int enemyHealth = 100;
-    int playerAttack = 20;
-    int enemyAttack = 15;
+    std::cout << "Simulating battle...\n";
+
+    int playerHealth = blackboard_->getInEnvironment<int>("health");
+    int enemyHealth = blackboard_->getInEnvironment<int>("enemy_health");
+    int playerAttack = blackboard_->getInEnvironment<int>("attack_power");
+    int enemyAttack = 15;  // This can be set via blackboard as well
 
     while (playerHealth > 0 && enemyHealth > 0) {
         // Player's turn
         enemyHealth -= playerAttack;
         std::cout << "You attack the enemy! Enemy health: " << enemyHealth << "\n";
+        blackboard_->setInEnvironment("enemy_health", enemyHealth);
 
         if (enemyHealth <= 0) {
             std::cout << "You defeated the enemy!\n";
+            blackboard_->setInEnvironment("enemy_health", 100); // Reset enemy health
             return;
         }
 
         // Enemy's turn
         playerHealth -= enemyAttack;
         std::cout << "Enemy attacks you! Your health: " << playerHealth << "\n";
+        blackboard_->setInEnvironment("health", playerHealth);
 
         if (playerHealth <= 0) {
             std::cout << "You were defeated by the enemy.\n";
+            blackboard_->setInEnvironment("health", 100); // Reset player health
             return;
         }
     }

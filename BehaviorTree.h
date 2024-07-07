@@ -5,13 +5,11 @@
 #include <string>
 #include <stack>
 #include <unordered_map>
-
-enum Action { EXPLORE, GATHER, FIGHT, FLEE, PUZZLE };
+#include "blackboard.hpp"
 
 class BehaviorTree {
 public:
-    BehaviorTree();
-    Action getAction();
+    BehaviorTree(Blackboard* blackboard);
     void update();
     void exploreBlackHole();
 
@@ -19,6 +17,8 @@ private:
     std::vector<std::string> behaviors;
     std::stack<std::string> movementHistory;
     std::unordered_map<std::string, int> directions;
+    Blackboard* blackboard_;
+
     bool checkPattern();
     void handleEncounter(char encounter);
     void simulateBattle();
