@@ -9,8 +9,8 @@
 #include "tasks/FleeTask.hpp"
 #include "conditions/LowHealthCondition.hpp"
 
-BehaviorTree::BehaviorTree(Blackboard* blackboard)
-    : blackboard_(blackboard) {
+BehaviorTree::BehaviorTree(Blackboard* blackboard, Map* map)
+    : blackboard_(blackboard), map_(map) {
     behaviors = { "Explore", "Attack", "Heal", "Flee" };
     directions = { {"N", 0}, {"S", 1}, {"E", 2}, {"W", 3} };
     std::srand(std::time(0));  // Seed for random number generation
@@ -41,6 +41,11 @@ void BehaviorTree::exploreBlackHole() {
 
     if (directions.find(direction) == directions.end()) {
         std::cout << "Invalid direction. Try again.\n";
+        return;
+    }
+
+    if (!map_->moveAstronaut(direction)) {
+        std::cout << "Movement failed.\n";
         return;
     }
 

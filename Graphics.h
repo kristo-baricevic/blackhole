@@ -13,4 +13,11 @@ void displayCharacterA();
 
 void displayCharacterB();
 
+void displayLargeAstronaut();
+
+void displayAstronaut();
+
+void displayOuterSpace();
+
+
 #endif // GRAPHICS_H

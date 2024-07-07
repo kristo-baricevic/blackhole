@@ -3,10 +3,10 @@ CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 
 # Executable name
-EXEC = outer_space_game
+EXEC = blackhole_simulator
 
 # Source files
-SRCS = main.cpp BehaviorTree.cpp AStar.cpp UCS.cpp GeneticAlgorithm.cpp Graphics.cpp
+SRCS = main.cpp BehaviorTree.cpp AStar.cpp UCS.cpp GeneticAlgorithm.cpp Graphics.cpp Map.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)

@@ -6,10 +6,11 @@
 #include <stack>
 #include <unordered_map>
 #include "blackboard.hpp"
+#include "Map.h"
 
 class BehaviorTree {
 public:
-    BehaviorTree(Blackboard* blackboard);
+    BehaviorTree(Blackboard* blackboard, Map* map);
     void update();
     void exploreBlackHole();
 
@@ -18,10 +19,11 @@ private:
     std::stack<std::string> movementHistory;
     std::unordered_map<std::string, int> directions;
     Blackboard* blackboard_;
+    Map* map_;
 
     bool checkPattern();
     void handleEncounter(char encounter);
     void simulateBattle();
 };
 
-#endif
+#endif // BEHAVIOR_TREE_H

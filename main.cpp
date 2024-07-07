@@ -5,6 +5,7 @@
 #include "GeneticAlgorithm.h"
 #include "Graphics.h"
 #include "blackboard.hpp"
+#include "Map.h"
 
 int main() {
     Blackboard blackboard;
@@ -13,7 +14,9 @@ int main() {
     blackboard.setInEnvironment("attack_power", 20);
     blackboard.setInEnvironment("heal_amount", 20);
 
-    BehaviorTree behaviorTree(&blackboard);
+    Map gameMap(10, 10);  // Create a 10x10 map
+    BehaviorTree behaviorTree(&blackboard, &gameMap);
+    
     AStar aStar;
     UCS ucs;
     GeneticAlgorithm geneticAlgorithm;
@@ -28,6 +31,7 @@ int main() {
     displayLogo();
 
     while (gameRunning) {
+        gameMap.display();  // Display the map
         displayMenu();
         std::cin >> choice;
 
@@ -61,6 +65,12 @@ int main() {
             ucs.allocateResources(100, 50);
             geneticAlgorithm.evolve();
         }
+
+        // Handle movement
+        std::string direction;
+        std::cout << "Enter direction to move (N/S/E/W): ";
+        std::cin >> direction;
+        gameMap.moveAstronaut(direction);
     }
 
     return 0;
