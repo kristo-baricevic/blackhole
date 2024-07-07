@@ -52,6 +52,11 @@ void BehaviorTree::exploreBlackHole() {
         }
     }
 
+    if (std::rand() % 2 == 0) {
+        displayBlackhole2();
+    } else {
+        displayBlackhole3();
+    }
     std::cout << "You see blackness.\n";
 }
 
