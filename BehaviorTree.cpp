@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "Graphics.h"
+#include "Map.h"
 #include "tasks/BattleTask.hpp"
 #include "tasks/ExploreTask.hpp"
 #include "conditions/HealthCondition.hpp"
@@ -59,6 +60,11 @@ void BehaviorTree::exploreBlackHole() {
     }
 
     std::cout << "You see blackness.\n";
+
+    // Check if the astronaut encounters a villain
+    if (map_->checkCollision(map_->getAstronautX(), map_->getAstronautY())) {
+        engageEnemy();
+    }
 }
 
 bool BehaviorTree::checkPattern() {
@@ -159,7 +165,6 @@ void BehaviorTree::simulateBattle() {
         blackboard_->setInEnvironment("enemy_health", 100);
     }
 }
-
 
 void BehaviorTree::engageEnemy() {
     displayCharacterB();

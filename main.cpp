@@ -7,6 +7,12 @@
 #include "blackboard.hpp"
 #include "Map.h"
 
+void updateGame(Map& gameMap) {
+    gameMap.initializeGrid();  // Prepare the grid
+    gameMap.moveVillains();    // Update positions of villains
+    gameMap.display();         // Now display the updated map
+}
+
 int main() {
     Blackboard blackboard;
     blackboard.setInEnvironment("health", 100);
@@ -14,7 +20,13 @@ int main() {
     blackboard.setInEnvironment("attack_power", 20);
     blackboard.setInEnvironment("heal_amount", 20);
 
-    Map gameMap(100, 10);  
+    Map gameMap(100, 10, &blackboard);  // Create a 100x10 map
+    gameMap.addVillain(13, 3, "<^>"); 
+    gameMap.addVillain(37, 7, "<^>");  
+    gameMap.addVillain(53, 5, "<^>");  
+    gameMap.addVillain(78, 2, "<^>");  
+    gameMap.addVillain(98, 6, "<^>"); 
+
     BehaviorTree behaviorTree(&blackboard, &gameMap);
     
     AStar aStar;
@@ -29,10 +41,9 @@ int main() {
 
     // Display the logo once at the beginning
     displayLogo();
-    displayLargeAstronaut();
 
     while (gameRunning) {
-        gameMap.display();  // Display the map
+        updateGame(gameMap);  // Update game state
         displayMenu();
         std::cin >> choice;
 
