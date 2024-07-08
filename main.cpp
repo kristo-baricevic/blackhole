@@ -8,8 +8,8 @@
 #include "Map.h"
 
 void updateGame(Map& gameMap) {
-    gameMap.initializeGrid();  // Prepare the grid
     gameMap.moveVillains();    // Update positions of villains
+    gameMap.initializeGrid();  // Reinitialize the grid with updated positions
     gameMap.display();         // Now display the updated map
 }
 
@@ -20,12 +20,14 @@ int main() {
     blackboard.setInEnvironment("attack_power", 20);
     blackboard.setInEnvironment("heal_amount", 20);
 
-    Map gameMap(100, 10, &blackboard);  // Create a 100x10 map
+    Map gameMap(120, 10, &blackboard);  // Create a 100x10 map
     gameMap.addVillain(13, 3, "<^>"); 
     gameMap.addVillain(37, 7, "<^>");  
     gameMap.addVillain(53, 5, "<^>");  
     gameMap.addVillain(78, 2, "<^>");  
     gameMap.addVillain(98, 6, "<^>"); 
+
+    gameMap.initializeGrid();  // Initialize the grid before starting the game loop
 
     BehaviorTree behaviorTree(&blackboard, &gameMap);
     
@@ -41,9 +43,10 @@ int main() {
 
     // Display the logo once at the beginning
     displayLogo();
-
+    displayLargeAstronaut();
+    updateGame(gameMap);
     while (gameRunning) {
-        updateGame(gameMap);  // Update game state
+          // Update and display game state
         displayMenu();
         std::cin >> choice;
 
@@ -76,6 +79,8 @@ int main() {
             std::vector<Node> path = aStar.findPath(player, enemy);
             ucs.allocateResources(100, 50);
             geneticAlgorithm.evolve();
+            
+            updateGame(gameMap);
         }
     }
 

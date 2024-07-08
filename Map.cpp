@@ -7,8 +7,8 @@
 Map::Map(int width, int height, Blackboard* blackboard)
     : width_(width), height_(height), astronautX_(width / 2), astronautY_(height / 2), blackboard_(blackboard) {
     grid_ = std::vector<std::vector<std::string>>(height, std::vector<std::string>(width, " "));
-    grid_[astronautY_][astronautX_] = "@";  // Initial position of the astronaut
-    std::srand(std::time(0));  // Seed for random number generation
+    grid_[astronautY_][astronautX_] = "@"; 
+    std::srand(std::time(0));  
 
     blackboard_->setInEnvironment("villainPositions", villainPositions_);
 }
@@ -117,38 +117,36 @@ void Map::moveVillains() {
     std::vector<std::pair<int, int>> newVillainPositions;
     std::unordered_map<std::pair<int, int>, std::string> newVillainSymbols;
 
-    std::cout << "Villain positions before move:\n";
     for (const auto& villain : villainPositions_) {
-        std::cout << "Villain at (" << villain.first << ", " << villain.second << ")\n";
-    }
+        int oldX = villain.first;
+        int oldY = villain.second;
+        
+        int newX = oldX + (std::rand() % 3 - 1);  // Move -1, 0, or 1 step
+        int newY = oldY + (std::rand() % 3 - 1);
 
-    for (auto& villain : villainPositions_) {
-        clearOldPosition(villain.first, villain.second);
-
-        int moveX = villain.first + (std::rand() % 3 - 1);  // Move -1, 0, or 1 step
-        int moveY = villain.second + (std::rand() % 3 - 1);
-
-        if (isWithinBounds(moveX, moveY) && !checkCollision(moveX, moveY)) {
-            villain.first = moveX;
-            villain.second = moveY;
+        if (isWithinBounds(newX, newY) && !checkCollision(newX, newY)) {
+            newVillainPositions.emplace_back(newX, newY);
+            newVillainSymbols[{newX, newY}] = villainSymbols_.at({oldX, oldY});
+            
+            // Clear old position in grid
+            grid_[oldY][oldX] = " ";
+        } else {
+            newVillainPositions.push_back(villain);
+            newVillainSymbols[villain] = villainSymbols_.at(villain);
         }
-
-        newVillainPositions.push_back(villain);
-        newVillainSymbols[villain] = villainSymbols_[{villain.first, villain.second}]; // Update to use new position
-
-        std::cout << "Moved villain to (" << villain.first << ", " << villain.second << ")\n";
     }
 
+    // Update class members
     villainPositions_ = newVillainPositions;
     villainSymbols_ = newVillainSymbols;
 
+    // Update grid with new positions
+    for (const auto& villain : villainPositions_) {
+        grid_[villain.second][villain.first] = villainSymbols_.at(villain);
+    }
+
     // Update villain positions in the blackboard
     blackboard_->setInEnvironment("villainPositions", villainPositions_);
-
-    std::cout << "Villain positions after move:\n";
-    for (const auto& villain : villainPositions_) {
-        std::cout << "Villain at (" << villain.first << ", " << villain.second << ")\n";
-    }
 }
 
 bool Map::checkCollision(int x, int y) const {
