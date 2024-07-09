@@ -39,35 +39,32 @@ void Map::initializeGrid() {
     }
 }
 
-void Map::display() const {
+void Map::display(WINDOW* win) const {
     for (int y = 0; y < height_; ++y) {
         for (int x = 0; x < width_; ++x) {
             if (x == astronautX_ && y == astronautY_) {
-                mvprintw(y + 1, x, "@"); // Adjust the position to account for the instruction line
+                mvwaddch(win, y, x, '@');
             } else {
                 bool isVillain = false;
                 for (const auto& villain : villainPositions_) {
                     if (x == villain.first && y == villain.second) {
-                        mvprintw(y + 1, x, villainSymbols_.at(villain).c_str());
+                        mvwaddch(win, y, x, villainSymbols_.at(villain)[0]);
                         isVillain = true;
                         break;
                     }
                 }
                 if (!isVillain) {
-                    mvprintw(y + 1, x, " "); // Display space
+                    mvwaddch(win, y, x, ' ');
                 }
             }
         }
     }
-    refresh(); // Refresh the screen to show changes
+    wrefresh(win);
 }
 
-
-bool Map::moveAstronaut(const std::string& direction) {
+bool Map::moveAstronaut(const std::string& direction, WINDOW* infoWin) {
     int newX = astronautX_;
     int newY = astronautY_;
-
-   
 
     if (direction == "N") {
         newY--;
@@ -78,7 +75,8 @@ bool Map::moveAstronaut(const std::string& direction) {
     } else if (direction == "W") {
         newX--;
     } else {
-        std::cout << "Invalid direction. Use N, S, E, or W.\n";
+        mvwprintw(infoWin, 0, 0, "Invalid direction. Use N, S, E, or W.");
+        wrefresh(infoWin);
         return false;
     }
 
@@ -90,15 +88,15 @@ bool Map::moveAstronaut(const std::string& direction) {
 
         // Check for collision with villains
         if (checkCollision(astronautX_, astronautY_)) {
-            displayVillain();
-            // std::cout << "You encountered a villain! Prepare for battle!\n";
+            displayVillain(infoWin);
             return true;  // Indicate that a battle should occur
         }
 
         moveVillains();  // Move villains when astronaut moves
         return true;
     } else {
-        std::cout << "Move out of bounds.\n";
+        mvwprintw(infoWin, 0, 0, "Move out of bounds.");
+        wrefresh(infoWin);
         return false;
     }
 }
@@ -118,9 +116,10 @@ void Map::addVillain(int x, int y, const std::string& symbol) {
         blackboard_->setInEnvironment("villainPositions", villainPositions_);
     }
 }
+
 void Map::moveVillains() {
     std::vector<std::pair<int, int>> newVillainPositions;
-    std::unordered_map<std::pair<int, int>, std::string> newVillainSymbols;
+    std::unordered_map<std::pair<int, int>, std::string, pair_hash> newVillainSymbols;
 
     for (const auto& villain : villainPositions_) {
         int oldX = villain.first;

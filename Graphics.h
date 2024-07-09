@@ -2,24 +2,22 @@
 #define GRAPHICS_H
 
 #include <string>
+#include <ncurses.h>
 
+void displayFile(WINDOW* win, const std::string& filename);
+void displayLogo(WINDOW* win);
+void displayVillain(WINDOW* win);
+void displayMenu(WINDOW* win);
 
-void displayFile(const std::string& filename);
-void displayVillain();
-void displayMenu();
+void displayBlackhole(WINDOW* win);
+void displayBlackhole2(WINDOW* win);
+void displayBlackhole3(WINDOW* win);
 
-void displayBlackhole();
-void displayBlackhole2();
-void displayBlackhole3();
+void displayCharacter(WINDOW* win);
 
-void displayCharacter();
-
-void displayLargeAstronaut();
+void displayLargeAstronaut(WINDOW* win);
 
 void displayAstronaut();
-
 void displayOuterSpace();
-
-
 
 #endif // GRAPHICS_H

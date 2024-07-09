@@ -1,31 +1,31 @@
 #ifndef BEHAVIOR_TREE_H
 #define BEHAVIOR_TREE_H
 
-#include <vector>
-#include <string>
 #include <stack>
 #include <unordered_map>
+#include <vector>
+#include <string>
 #include "blackboard.hpp"
-#include "Map.h"
+#include "map.h"
+#include <ncurses.h>
 
 class BehaviorTree {
 public:
     BehaviorTree(Blackboard* blackboard, Map* map);
     void update();
-    void exploreBlackHole();
-    void simulateBattle();
-    void engageEnemy(); 
-
+    void exploreBlackHole(WINDOW* mapWin, WINDOW* infoWin);
+    void engageEnemy(WINDOW* win);
 
 private:
-    std::vector<std::string> behaviors;
-    std::stack<std::string> movementHistory;
-    std::unordered_map<std::string, int> directions;
     Blackboard* blackboard_;
     Map* map_;
+    std::vector<std::string> behaviors;
+    std::unordered_map<std::string, int> directions;
+    std::stack<std::string> movementHistory;
 
     bool checkPattern();
-    void handleEncounter(char encounter);
+    void handleEncounter(char encounter, WINDOW* win);
+    void simulateBattle(WINDOW* win);
 };
 
 #endif // BEHAVIOR_TREE_H

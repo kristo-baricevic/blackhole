@@ -1,26 +1,34 @@
 #include <iostream>
-#include "BehaviorTree.h"
 #include "AStar.h"
 #include "UCS.h"
 #include "GeneticAlgorithm.h"
 #include "Graphics.h"
 #include "blackboard.hpp"
 #include "Map.h"
-#include "NcursesUtils.h" // Include the ncurses utility header
+#include "NcursesUtils.h"
+#include "BehaviorTree.h"
 
-void updateGame(Map& gameMap) {
+void updateGame(Map& gameMap, WINDOW* mapWin) {
     gameMap.moveVillains();    // Update positions of villains
     gameMap.initializeGrid();  // Reinitialize the grid with updated positions
-    gameMap.display();         // Now display the updated map
+    gameMap.display(mapWin);   // Now display the updated map
 }
-
-void displayLogo() {
-    displayFile("logo.txt");
-}
-
 
 int main() {
     initializeNcurses();  // Initialize ncurses
+
+    int height, width;
+    getmaxyx(stdscr, height, width);
+
+    // Create windows for the map and information display
+    WINDOW* mapWin = newwin(height - 10, width, 0, 0);
+    WINDOW* infoWin = newwin(10, width, height - 10, 0);
+
+    // Display the logo in the info window
+    displayLogo(infoWin);
+    getch();  // Wait for user input to proceed
+    werase(infoWin);
+    wrefresh(infoWin);
 
     Blackboard blackboard;
     blackboard.setInEnvironment("health", 100);
@@ -29,11 +37,11 @@ int main() {
     blackboard.setInEnvironment("heal_amount", 20);
 
     Map gameMap(120, 10, &blackboard);  // Create a 120x10 map
-    gameMap.addVillain(13, 3, "<^>"); 
-    gameMap.addVillain(37, 7, "<^>");  
-    gameMap.addVillain(53, 5, "<^>");  
-    gameMap.addVillain(78, 2, "<^>");  
-    gameMap.addVillain(98, 6, "<^>"); 
+    gameMap.addVillain(13, 3, "<^>");
+    gameMap.addVillain(37, 7, "<^>");
+    gameMap.addVillain(53, 5, "<^>");
+    gameMap.addVillain(78, 2, "<^>");
+    gameMap.addVillain(98, 6, "<^>");
 
     gameMap.initializeGrid();  // Initialize the grid before starting the game loop
 
@@ -49,55 +57,55 @@ int main() {
     bool gameRunning = true;
     int choice;
 
-    // Display the logo once at the beginning
-    displayLogo();
+    // Example to display the villain image
+    displayVillain(infoWin);
     getch();  // Wait for user input to proceed
-    clear();  // Clear the screen after displaying the logo
+    werase(infoWin);
+    wrefresh(infoWin);
 
-    // displayLargeAstronaut();
-    updateGame(gameMap);
+    updateGame(gameMap, mapWin);
     while (gameRunning) {
-        displayMenu();
+        displayMenu(infoWin);
 
         // Get user input via ncurses
         echo();  // Temporarily enable echo for user input
         char choiceStr[2];
-        mvgetnstr(6, 18, choiceStr, 1);
+        mvwgetnstr(infoWin, 5, 18, choiceStr, 1);
         choice = choiceStr[0] - '0';
         noecho();  // Disable echo again
 
         switch (choice) {
             case 1:
-                behaviorTree.exploreBlackHole();
+                behaviorTree.exploreBlackHole(mapWin, infoWin);
                 break;
             case 2:
-                clear();
-                mvprintw(0, 0, "Gathering resources...\n");
-                refresh();
+                werase(infoWin);
+                mvwprintw(infoWin, 0, 0, "Gathering resources...");
+                wrefresh(infoWin);
                 behaviorTree.update();
                 break;
             case 3:
-                clear();
-                mvprintw(0, 0, "Engaging an enemy...\n");
-                refresh();
-                behaviorTree.engageEnemy();  // Engage an enemy
+                werase(infoWin);
+                mvwprintw(infoWin, 0, 0, "Engaging an enemy...");
+                wrefresh(infoWin);
+                behaviorTree.engageEnemy(infoWin);  // Engage an enemy
                 break;
             case 4:
-                clear();
-                mvprintw(0, 0, "Fleeing from an enemy...\n");
-                refresh();
+                werase(infoWin);
+                mvwprintw(infoWin, 0, 0, "Fleeing from an enemy...");
+                wrefresh(infoWin);
                 behaviorTree.update();
                 break;
             case 5:
-                clear();
-                mvprintw(0, 0, "Exiting the game...\n");
-                refresh();
+                werase(infoWin);
+                mvwprintw(infoWin, 0, 0, "Exiting the game...");
+                wrefresh(infoWin);
                 gameRunning = false;
                 break;
             default:
-                clear();
-                mvprintw(0, 0, "Invalid choice. Please try again.\n");
-                refresh();
+                werase(infoWin);
+                mvwprintw(infoWin, 0, 0, "Invalid choice. Please try again.");
+                wrefresh(infoWin);
                 break;
         }
 
@@ -106,9 +114,12 @@ int main() {
             ucs.allocateResources(100, 50);
             geneticAlgorithm.evolve();
             
-            updateGame(gameMap);
+            updateGame(gameMap, mapWin);
         }
     }
+
+    delwin(mapWin);
+    delwin(infoWin);
 
     endNcurses();  // End ncurses mode
 

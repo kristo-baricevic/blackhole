@@ -29,13 +29,13 @@ void BehaviorTree::update() {
     }
 }
 
-void BehaviorTree::exploreBlackHole() {
-    clear();
-    mvprintw(0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
-    refresh();
+void BehaviorTree::exploreBlackHole(WINDOW* mapWin, WINDOW* infoWin) {
+    wclear(infoWin);
+    mvwprintw(infoWin, 0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
+    wrefresh(infoWin);
 
     int ch;
-    while ((ch = getch()) != 'q') {
+    while ((ch = wgetch(mapWin)) != 'q') {
         switch (ch) {
             case KEY_UP:
                 map_->moveAstronaut("N");
@@ -53,15 +53,14 @@ void BehaviorTree::exploreBlackHole() {
                 continue; // Ignore other keys
         }
 
-        // Clear the screen and redisplay the map
-        clear();
-        mvprintw(0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
-        map_->display();
-        refresh();
+        // Clear the map window and redisplay the map
+        wclear(mapWin);
+        map_->display(mapWin);
+        wrefresh(mapWin);
 
         // Check if the astronaut encounters a villain
         if (map_->checkCollision(map_->getAstronautX(), map_->getAstronautY())) {
-            engageEnemy();
+            engageEnemy(infoWin);
             break;
         }
     }
@@ -78,12 +77,12 @@ bool BehaviorTree::checkPattern() {
     movementHistory.push(lastMove);
 
     if (lastMove == secondLastMove) {
-        handleEncounter('A');
+        handleEncounter('A', nullptr);  // Pass nullptr or a valid WINDOW*
         return true;
     }
 
     if ((lastMove == "W" && secondLastMove == "W")) {
-        handleEncounter('B');
+        handleEncounter('B', nullptr);  // Pass nullptr or a valid WINDOW*
         return true;
     }
 
@@ -91,40 +90,40 @@ bool BehaviorTree::checkPattern() {
          (secondLastMove == "E" || secondLastMove == "W")) ||
         ((lastMove == "E" || lastMove == "W") && 
          (secondLastMove == "N" || secondLastMove == "S"))) {
-        handleEncounter('C');
+        handleEncounter('C', nullptr);  // Pass nullptr or a valid WINDOW*
         return true;
     }
 
     return false;
 }
 
-void BehaviorTree::handleEncounter(char encounter) {
+void BehaviorTree::handleEncounter(char encounter, WINDOW* win) {
     switch (encounter) {
         case 'A':
-            displayCharacter();
-            mvprintw(0, 0, "You encounter Character A! Answer this geometry question to proceed.");
-            mvprintw(1, 0, "What is the sum of the interior angles of a triangle?");
-            refresh();
+            displayCharacter(win);
+            mvwprintw(win, 0, 0, "You encounter Character A! Answer this geometry question to proceed.");
+            mvwprintw(win, 1, 0, "What is the sum of the interior angles of a triangle?");
+            wrefresh(win);
             int answer;
-            scanw("%d", &answer);
+            mvwscanw(win, 2, 0, "%d", &answer);  // Use mvwscanw
             if (answer == 180) {
-                mvprintw(2, 0, "Correct! You may proceed.");
+                mvwprintw(win, 3, 0, "Correct! You may proceed.");
             } else {
-                mvprintw(2, 0, "Incorrect. Try again next time.");
+                mvwprintw(win, 3, 0, "Incorrect. Try again next time.");
             }
-            refresh();
+            wrefresh(win);
             break;
         case 'B':
-            displayVillain();
-            mvprintw(0, 0, "You encounter Character B! Prepare for battle!");
-            refresh();
-            simulateBattle();  // Trigger the battle sequence
+            displayVillain(win);  // Pass WINDOW* argument
+            mvwprintw(win, 0, 0, "You encounter Character B! Prepare for battle!");
+            wrefresh(win);
+            simulateBattle(win);  // Trigger the battle sequence
             break;
         case 'C':
-            mvprintw(0, 0, "The black hole abstracts away into metaphysical madness...");
-            mvprintw(1, 0, "Solve the following puzzle to proceed.");
+            mvwprintw(win, 0, 0, "The black hole abstracts away into metaphysical madness...");
+            mvwprintw(win, 1, 0, "Solve the following puzzle to proceed.");
             // Placeholder for puzzle logic
-            refresh();
+            wrefresh(win);
             break;
     }
 
@@ -134,9 +133,9 @@ void BehaviorTree::handleEncounter(char encounter) {
     }
 }
 
-void BehaviorTree::simulateBattle() {
-    mvprintw(0, 0, "Battle begins!");
-    refresh();
+void BehaviorTree::simulateBattle(WINDOW* win) {
+    mvwprintw(win, 0, 0, "Battle begins!");
+    wrefresh(win);
 
     BattleTask battleTask(blackboard_);
     HealthCondition playerHealthCond(blackboard_, "health");
@@ -149,16 +148,16 @@ void BehaviorTree::simulateBattle() {
         battleTask.playerTurn();
         if (!enemyHealthCond.isHealthAboveZero()) {
             enemyDefeated = true;
-            mvprintw(1, 0, "You defeated the enemy!");
-            refresh();
+            mvwprintw(win, 1, 0, "You defeated the enemy!");
+            wrefresh(win);
             break;
         }
 
         battleTask.enemyTurn();
         if (!playerHealthCond.isHealthAboveZero()) {
             playerDefeated = true;
-            mvprintw(1, 0, "You were defeated by the enemy.");
-            refresh();
+            mvwprintw(win, 1, 0, "You were defeated by the enemy.");
+            wrefresh(win);
             break;
         }
     }
@@ -173,9 +172,9 @@ void BehaviorTree::simulateBattle() {
     }
 }
 
-void BehaviorTree::engageEnemy() {
-    displayVillain();
-    mvprintw(0, 0, "Engaging an enemy! Prepare for battle!");
-    refresh();
-    simulateBattle();
+void BehaviorTree::engageEnemy(WINDOW* infoWin) {
+    displayVillain(infoWin);
+    mvwprintw(infoWin, 0, 0, "Engaging an enemy! Prepare for battle!");
+    wrefresh(infoWin);
+    simulateBattle(infoWin);
 }

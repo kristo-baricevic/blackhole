@@ -1,73 +1,68 @@
 #include "Graphics.h"
-#include <iostream>
-#include <ncurses.h>
-
 #include <ncurses.h>
 #include <fstream>
 #include <string>
 
-
-void displayFile(const std::string& filename) {
+void displayFile(WINDOW* win, const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-      mvprintw(0, 0, ("Failed to open " + filename + " file!").c_str());
-      refresh();
-      return;
+        mvwprintw(win, 0, 0, ("Failed to open " + filename + " file!").c_str());
+        wrefresh(win);
+        return;
     }
 
     std::string line;
     int row = 0;
     while (getline(file, line)) {
-      mvprintw(row++, 0, "%s", line.c_str());
+        mvwprintw(win, row++, 0, "%s", line.c_str());
     }
 
     file.close();
-    refresh();
+    wrefresh(win);
 }
 
-
-void displayVillain() {
-  displayFile("villain.txt");
+void displayLogo(WINDOW* win) {
+    displayFile(win, "logo.txt");
 }
 
-void displayLargeAstronaut() {
-  displayFile("astronaut.txt");
+void displayVillain(WINDOW* win) {
+    displayFile(win, "villian.txt");
 }
 
-void displayMenu() {
-  clear();
-  mvprintw(0, 0, "Choose an action:\n");
-  mvprintw(1, 0, "1. Explore the black hole\n");
-  mvprintw(2, 0, "2. Gather resources\n");
-  mvprintw(3, 0, "3. Engage an enemy\n");
-  mvprintw(4, 0, "4. Flee from an enemy\n");
-  mvprintw(5, 0, "5. Exit\n");
-  mvprintw(6, 0, "Enter your choice: ");
-  refresh();
+void displayMenu(WINDOW* win) {
+    mvwprintw(win, 0, 0, "1. Explore the black hole");
+    mvwprintw(win, 1, 0, "2. Gather resources");
+    mvwprintw(win, 2, 0, "3. Engage an enemy");
+    mvwprintw(win, 3, 0, "4. Flee from an enemy");
+    mvwprintw(win, 4, 0, "5. Exit");
+    mvwprintw(win, 5, 0, "Enter your choice: ");
+    wrefresh(win);
 }
 
-
-void displayCharacter() {
-  displayFile("character.txt");
+void displayBlackhole(WINDOW* win) {
+    displayFile(win, "blackhole.txt");
 }
 
-
-void displayBlackhole() {
-  displayFile("blackhole1.txt");
+void displayBlackhole2(WINDOW* win) {
+    displayFile(win, "blackhole2.txt");
 }
 
-void displayBlackhole2() {
-  displayFile("blackhole2.txt");
+void displayBlackhole3(WINDOW* win) {
+    displayFile(win, "blackhole3.txt");
 }
 
-void displayBlackhole3() {
-  displayFile("blackhole3.txt");
+void displayCharacter(WINDOW* win) {
+    displayFile(win, "character.txt");
+}
+
+void displayLargeAstronaut(WINDOW* win) {
+    displayFile(win, "large_astronaut.txt");
 }
 
 void displayAstronaut() {
-  std::cout << '@';
+    // Implementation for displaying the astronaut in ncurses
 }
 
 void displayOuterSpace() {
-  std::cout << '.';
+    // Implementation for displaying outer space in ncurses
 }

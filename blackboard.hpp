@@ -7,6 +7,7 @@
 #include <typeindex>
 #include <iostream>
 #include <typeinfo>
+#include <ncurses.h>
 
 using environment_key_t = std::string;
 
