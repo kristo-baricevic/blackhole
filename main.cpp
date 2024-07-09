@@ -22,6 +22,7 @@ int main() {
 
     // Create windows for the map and information display
     WINDOW* mapWin = newwin(height - 10, width, 0, 0);
+    keypad(mapWin, TRUE); // Enable arrow keys for mapWin
     WINDOW* infoWin = newwin(10, width, height - 10, 0);
 
     // Display the logo in the info window
@@ -37,11 +38,11 @@ int main() {
     blackboard.setInEnvironment("heal_amount", 20);
 
     Map gameMap(120, 10, &blackboard);  // Create a 120x10 map
-    gameMap.addVillain(13, 3, "<^>");
-    gameMap.addVillain(37, 7, "<^>");
-    gameMap.addVillain(53, 5, "<^>");
-    gameMap.addVillain(78, 2, "<^>");
-    gameMap.addVillain(98, 6, "<^>");
+    gameMap.addVillain(13, 3, "<^>"); 
+    gameMap.addVillain(37, 7, "<^>");  
+    gameMap.addVillain(53, 5, "<^>");  
+    gameMap.addVillain(78, 2, "<^>");  
+    gameMap.addVillain(98, 6, "<^>"); 
 
     gameMap.initializeGrid();  // Initialize the grid before starting the game loop
 
@@ -65,7 +66,14 @@ int main() {
 
     updateGame(gameMap, mapWin);
     while (gameRunning) {
-        displayMenu(infoWin);
+        // Display the menu in the info window
+        mvwprintw(infoWin, 0, 0, "1. Explore the black hole");
+        mvwprintw(infoWin, 1, 0, "2. Gather resources");
+        mvwprintw(infoWin, 2, 0, "3. Engage an enemy");
+        mvwprintw(infoWin, 3, 0, "4. Flee from an enemy");
+        mvwprintw(infoWin, 4, 0, "5. Exit");
+        mvwprintw(infoWin, 5, 0, "Enter your choice: ");
+        wrefresh(infoWin);
 
         // Get user input via ncurses
         echo();  // Temporarily enable echo for user input

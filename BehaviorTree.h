@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include "blackboard.hpp"
-#include "map.h"
+#include "Map.h" // Ensure correct casing for the file name
 #include <ncurses.h>
 
 class BehaviorTree {

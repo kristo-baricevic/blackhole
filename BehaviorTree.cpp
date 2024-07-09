@@ -38,16 +38,16 @@ void BehaviorTree::exploreBlackHole(WINDOW* mapWin, WINDOW* infoWin) {
     while ((ch = wgetch(mapWin)) != 'q') {
         switch (ch) {
             case KEY_UP:
-                map_->moveAstronaut("N");
+                map_->moveAstronaut("N", infoWin);
                 break;
             case KEY_DOWN:
-                map_->moveAstronaut("S");
+                map_->moveAstronaut("S", infoWin);
                 break;
             case KEY_LEFT:
-                map_->moveAstronaut("W");
+                map_->moveAstronaut("W", infoWin);
                 break;
             case KEY_RIGHT:
-                map_->moveAstronaut("E");
+                map_->moveAstronaut("E", infoWin);
                 break;
             default:
                 continue; // Ignore other keys
