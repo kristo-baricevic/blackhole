@@ -1,5 +1,4 @@
 #include "BehaviorTree.h"
-#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include "Graphics.h"
@@ -7,6 +6,7 @@
 #include "tasks/BattleTask.hpp"
 #include "tasks/ExploreTask.hpp"
 #include "conditions/HealthCondition.hpp"
+#include <ncurses.h>
 
 BehaviorTree::BehaviorTree(Blackboard* blackboard, Map* map)
     : blackboard_(blackboard), map_(map) {
@@ -30,40 +30,40 @@ void BehaviorTree::update() {
 }
 
 void BehaviorTree::exploreBlackHole() {
-    displayBlackhole();
-    std::cout << "You see blackness. Choose a direction (N/S/E/W): ";
-    std::string direction;
-    std::cin >> direction;
+    clear();
+    mvprintw(0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
+    refresh();
 
-    if (directions.find(direction) == directions.end()) {
-        std::cout << "Invalid direction. Try again.\n";
-        return;
-    }
-
-    if (!map_->moveAstronaut(direction)) {
-        std::cout << "Movement failed.\n";
-        return;
-    }
-
-    movementHistory.push(direction);
-    if (movementHistory.size() >= 2) {
-        if (checkPattern()) {
-            return;
+    int ch;
+    while ((ch = getch()) != 'q') {
+        switch (ch) {
+            case KEY_UP:
+                map_->moveAstronaut("N");
+                break;
+            case KEY_DOWN:
+                map_->moveAstronaut("S");
+                break;
+            case KEY_LEFT:
+                map_->moveAstronaut("W");
+                break;
+            case KEY_RIGHT:
+                map_->moveAstronaut("E");
+                break;
+            default:
+                continue; // Ignore other keys
         }
-    }
 
-    // Randomly choose between displayBlackhole2 and displayBlackhole3
-    if (std::rand() % 2 == 0) {
-        displayBlackhole2();
-    } else {
-        displayBlackhole3();
-    }
+        // Clear the screen and redisplay the map
+        clear();
+        mvprintw(0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
+        map_->display();
+        refresh();
 
-    std::cout << "You see blackness.\n";
-
-    // Check if the astronaut encounters a villain
-    if (map_->checkCollision(map_->getAstronautX(), map_->getAstronautY())) {
-        engageEnemy();
+        // Check if the astronaut encounters a villain
+        if (map_->checkCollision(map_->getAstronautX(), map_->getAstronautY())) {
+            engageEnemy();
+            break;
+        }
     }
 }
 
@@ -101,26 +101,30 @@ bool BehaviorTree::checkPattern() {
 void BehaviorTree::handleEncounter(char encounter) {
     switch (encounter) {
         case 'A':
-            displayCharacterA();
-            std::cout << "You encounter Character A! Answer this geometry question to proceed.\n";
-            std::cout << "What is the sum of the interior angles of a triangle?\n";
+            displayCharacter();
+            mvprintw(0, 0, "You encounter Character A! Answer this geometry question to proceed.");
+            mvprintw(1, 0, "What is the sum of the interior angles of a triangle?");
+            refresh();
             int answer;
-            std::cin >> answer;
+            scanw("%d", &answer);
             if (answer == 180) {
-                std::cout << "Correct! You may proceed.\n";
+                mvprintw(2, 0, "Correct! You may proceed.");
             } else {
-                std::cout << "Incorrect. Try again next time.\n";
+                mvprintw(2, 0, "Incorrect. Try again next time.");
             }
+            refresh();
             break;
         case 'B':
-            displayCharacterB();
-            std::cout << "You encounter Character B! Prepare for battle!\n";
+            displayVillain();
+            mvprintw(0, 0, "You encounter Character B! Prepare for battle!");
+            refresh();
             simulateBattle();  // Trigger the battle sequence
             break;
         case 'C':
-            std::cout << "The black hole abstracts away into metaphysical madness...\n";
-            std::cout << "Solve the following puzzle to proceed.\n";
+            mvprintw(0, 0, "The black hole abstracts away into metaphysical madness...");
+            mvprintw(1, 0, "Solve the following puzzle to proceed.");
             // Placeholder for puzzle logic
+            refresh();
             break;
     }
 
@@ -131,7 +135,8 @@ void BehaviorTree::handleEncounter(char encounter) {
 }
 
 void BehaviorTree::simulateBattle() {
-    std::cout << "Battle begins!\n";
+    mvprintw(0, 0, "Battle begins!");
+    refresh();
 
     BattleTask battleTask(blackboard_);
     HealthCondition playerHealthCond(blackboard_, "health");
@@ -144,14 +149,16 @@ void BehaviorTree::simulateBattle() {
         battleTask.playerTurn();
         if (!enemyHealthCond.isHealthAboveZero()) {
             enemyDefeated = true;
-            std::cout << "You defeated the enemy!\n";
+            mvprintw(1, 0, "You defeated the enemy!");
+            refresh();
             break;
         }
 
         battleTask.enemyTurn();
         if (!playerHealthCond.isHealthAboveZero()) {
             playerDefeated = true;
-            std::cout << "You were defeated by the enemy.\n";
+            mvprintw(1, 0, "You were defeated by the enemy.");
+            refresh();
             break;
         }
     }
@@ -167,7 +174,8 @@ void BehaviorTree::simulateBattle() {
 }
 
 void BehaviorTree::engageEnemy() {
-    displayCharacterB();
-    std::cout << "Engaging an enemy! Prepare for battle!\n";
+    displayVillain();
+    mvprintw(0, 0, "Engaging an enemy! Prepare for battle!");
+    refresh();
     simulateBattle();
 }

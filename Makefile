@@ -1,31 +1,24 @@
-# Compiler and compiler flags
+# Assuming your object files are named main.o, BehaviorTree.o, AStar.o, UCS.o, GeneticAlgorithm.o, Graphics.o, Map.o
+# Add -lncurses to the linker flags
+
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall
+LDFLAGS = -lncurses
 
-# Executable name
-EXEC = blackhole_simulator
+# List of object files
+OBJS = main.o BehaviorTree.o AStar.o UCS.o GeneticAlgorithm.o Graphics.o Map.o
 
-# Source files
-SRCS = main.cpp BehaviorTree.cpp AStar.cpp UCS.cpp GeneticAlgorithm.cpp Graphics.cpp Map.cpp
+# Output executable
+TARGET = blackhole_simulator
 
-# Object files
-OBJS = $(SRCS:.cpp=.o)
+# Build the target
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
-# Default target
-all: $(EXEC)
-
-# Link object files to create the executable
-$(EXEC): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(EXEC) $(OBJS)
-
-# Compile source files into object files
+# Pattern rule for object files
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean up object files and executable
+# Clean up build artifacts
 clean:
-	rm -f $(OBJS) $(EXEC)
-
-# Run the game
-run: $(EXEC)
-	./$(EXEC)
+	rm -f $(TARGET) $(OBJS)

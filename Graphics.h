@@ -1,17 +1,18 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-void displayLogo();
+#include <string>
+
+
+void displayFile(const std::string& filename);
+void displayVillain();
 void displayMenu();
 
 void displayBlackhole();
 void displayBlackhole2();
 void displayBlackhole3();
 
-
-void displayCharacterA();
-
-void displayCharacterB();
+void displayCharacter();
 
 void displayLargeAstronaut();
 

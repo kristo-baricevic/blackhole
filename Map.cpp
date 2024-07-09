@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <ncurses.h>
 
 Map::Map(int width, int height, Blackboard* blackboard)
     : width_(width), height_(height), astronautX_(width / 2), astronautY_(height / 2), blackboard_(blackboard) {
@@ -42,28 +43,31 @@ void Map::display() const {
     for (int y = 0; y < height_; ++y) {
         for (int x = 0; x < width_; ++x) {
             if (x == astronautX_ && y == astronautY_) {
-                displayAstronaut();
+                mvprintw(y + 1, x, "@"); // Adjust the position to account for the instruction line
             } else {
                 bool isVillain = false;
                 for (const auto& villain : villainPositions_) {
                     if (x == villain.first && y == villain.second) {
-                        std::cout << villainSymbols_.at(villain);
+                        mvprintw(y + 1, x, villainSymbols_.at(villain).c_str());
                         isVillain = true;
                         break;
                     }
                 }
                 if (!isVillain) {
-                    displayOuterSpace();
+                    mvprintw(y + 1, x, " "); // Display space
                 }
             }
         }
-        std::cout << '\n';
     }
+    refresh(); // Refresh the screen to show changes
 }
+
 
 bool Map::moveAstronaut(const std::string& direction) {
     int newX = astronautX_;
     int newY = astronautY_;
+
+   
 
     if (direction == "N") {
         newY--;
@@ -86,7 +90,8 @@ bool Map::moveAstronaut(const std::string& direction) {
 
         // Check for collision with villains
         if (checkCollision(astronautX_, astronautY_)) {
-            std::cout << "You encountered a villain! Prepare for battle!\n";
+            displayVillain();
+            // std::cout << "You encountered a villain! Prepare for battle!\n";
             return true;  // Indicate that a battle should occur
         }
 
