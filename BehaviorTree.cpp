@@ -7,6 +7,7 @@
 #include "tasks/ExploreTask.hpp"
 #include "conditions/HealthCondition.hpp"
 #include <ncurses.h>
+#include "NcursesUtils.h"
 
 BehaviorTree::BehaviorTree(Blackboard* blackboard, Map* map)
     : blackboard_(blackboard), map_(map) {
@@ -30,8 +31,13 @@ void BehaviorTree::update() {
 }
 
 void BehaviorTree::exploreBlackHole(WINDOW* mapWin, WINDOW* infoWin) {
-    wclear(infoWin);
-    mvwprintw(infoWin, 0, 0, "Use the arrow keys to navigate (press 'q' to quit): ");
+    int screenWidth, screenHeight;
+    getmaxyx(mapWin, screenHeight, screenWidth);  // Get window size
+    screenHeight -= 2;  // Adjust for border
+    screenWidth -= 2;   // Adjust for border
+
+    clearAndRedrawWindow(infoWin);
+    mvwprintw(infoWin, 1, 1, "Use the arrow keys to navigate (press 'q' to quit): ");
     wrefresh(infoWin);
 
     int ch;
@@ -54,8 +60,8 @@ void BehaviorTree::exploreBlackHole(WINDOW* mapWin, WINDOW* infoWin) {
         }
 
         // Clear the map window and redisplay the map
-        wclear(mapWin);
-        map_->display(mapWin);
+        clearAndRedrawWindow(mapWin);
+        map_->display(mapWin, screenWidth, screenHeight);
         wrefresh(mapWin);
 
         // Check if the astronaut encounters a villain

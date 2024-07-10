@@ -6,20 +6,28 @@
 void displayFile(WINDOW* win, const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        mvwprintw(win, 0, 0, ("Failed to open " + filename + " file!").c_str());
+        mvwprintw(win, 1, 1, ("Failed to open " + filename + " file!").c_str());
         wrefresh(win);
         return;
     }
 
     std::string line;
-    int row = 0;
+    int row = 1;  // Start displaying from row 1 to avoid border
+    int maxRows, maxCols;
+    getmaxyx(win, maxRows, maxCols);
+
     while (getline(file, line)) {
-        mvwprintw(win, row++, 0, "%s", line.c_str());
+        if (row >= maxRows - 1) {  // Ensure we do not write over the border
+            break;
+        }
+        mvwprintw(win, row++, 1, "%.*s", maxCols - 2, line.c_str());  // Ensure we do not write over the border
     }
 
     file.close();
     wrefresh(win);
 }
+
+
 
 void displayLogo(WINDOW* win) {
     displayFile(win, "logo.txt");

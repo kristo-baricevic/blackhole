@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <ncurses.h>
+#include "NcursesUtils.h"  // Include the utility functions
 
 Map::Map(int width, int height, Blackboard* blackboard)
     : width_(width), height_(height), astronautX_(width / 2), astronautY_(height / 2), blackboard_(blackboard) {
@@ -37,24 +38,42 @@ void Map::initializeGrid() {
             grid_[villain.second][villain.first] = villainSymbols_.at(villain);
         }
     }
+
+    // Place stars in every available space
+    for (int y = 0; y < grid_.size(); ++y) {
+        for (int x = 0; x < grid_[y].size(); ++x) {
+            if (grid_[y][x] == " ") {
+                grid_[y][x] = "*";
+            }
+        }
+    }
 }
 
-void Map::display(WINDOW* win) const {
+void Map::display(WINDOW* win, int winWidth, int winHeight) const {
+    clearAndRedrawWindow(win);  // Clear and redraw the window with borders
+
+    // Calculate the scaling factor for the grid to fit within the window
+    double scaleX = static_cast<double>(winWidth - 2) / width_; // Adjust for border
+    double scaleY = static_cast<double>(winHeight - 2) / height_; // Adjust for border
+
     for (int y = 0; y < height_; ++y) {
         for (int x = 0; x < width_; ++x) {
+            int screenX = static_cast<int>(x * scaleX) + 1;  // Adjust coordinates for border
+            int screenY = static_cast<int>(y * scaleY) + 1;  // Adjust coordinates for border
+
             if (x == astronautX_ && y == astronautY_) {
-                mvwaddch(win, y, x, '@');
+                mvwaddch(win, screenY, screenX, '@');  // Draw astronaut
             } else {
                 bool isVillain = false;
                 for (const auto& villain : villainPositions_) {
                     if (x == villain.first && y == villain.second) {
-                        mvwaddch(win, y, x, villainSymbols_.at(villain)[0]);
+                        mvwaddch(win, screenY, screenX, villainSymbols_.at(villain)[0]);  // Draw villain
                         isVillain = true;
                         break;
                     }
                 }
                 if (!isVillain) {
-                    mvwaddch(win, y, x, ' ');
+                    mvwaddch(win, screenY, screenX, grid_[y][x][0]);  // Draw grid element
                 }
             }
         }
@@ -75,7 +94,7 @@ bool Map::moveAstronaut(const std::string& direction, WINDOW* infoWin) {
     } else if (direction == "W") {
         newX--;
     } else {
-        mvwprintw(infoWin, 0, 0, "Invalid direction. Use N, S, E, or W.");
+        mvwprintw(infoWin, 1, 1, "Invalid direction. Use N, S, E, or W.");
         wrefresh(infoWin);
         return false;
     }
@@ -95,7 +114,7 @@ bool Map::moveAstronaut(const std::string& direction, WINDOW* infoWin) {
         moveVillains();  // Move villains when astronaut moves
         return true;
     } else {
-        mvwprintw(infoWin, 0, 0, "Move out of bounds.");
+        mvwprintw(infoWin, 1, 1, "Move out of bounds.");
         wrefresh(infoWin);
         return false;
     }
@@ -125,7 +144,8 @@ void Map::moveVillains() {
         int oldX = villain.first;
         int oldY = villain.second;
         
-        int newX = oldX + (std::rand() % 3 - 1);  // Move -1, 0, or 1 step
+        // Generate a new random position within the grid
+        int newX = oldX + (std::rand() % 3 - 1);
         int newY = oldY + (std::rand() % 3 - 1);
 
         if (isWithinBounds(newX, newY) && !checkCollision(newX, newY)) {

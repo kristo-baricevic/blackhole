@@ -1,12 +1,9 @@
-# Assuming your object files are named main.o, BehaviorTree.o, AStar.o, UCS.o, GeneticAlgorithm.o, Graphics.o, Map.o
-# Add -lncurses to the linker flags
-
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 LDFLAGS = -lncurses
 
 # List of object files
-OBJS = main.o BehaviorTree.o AStar.o UCS.o GeneticAlgorithm.o Graphics.o Map.o
+OBJS = main.o BehaviorTree.o AStar.o UCS.o GeneticAlgorithm.o Graphics.o Map.o NcursesUtils.o
 
 # Output executable
 TARGET = blackhole_simulator
