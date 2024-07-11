@@ -26,20 +26,14 @@ void updateGame(Map& gameMap, WINDOW* mapWin, int winWidth, int winHeight) {
 int main() {
     initializeNcurses();
 
-    // Create windows for the screen (TV) and dashboard
     WINDOW* screenWin = newwin(SCREEN_HEIGHT - DASHBOARD_HEIGHT, SCREEN_WIDTH, 0, 0);
     WINDOW* dashboardWin = newwin(DASHBOARD_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT - DASHBOARD_HEIGHT, 0);
-
-    // Add borders to the windows
+    keypad(screenWin, TRUE);
+    nodelay(screenWin, TRUE);
+    
     box(screenWin, 0, 0);
     box(dashboardWin, 0, 0);
     wrefresh(screenWin);
-    wrefresh(dashboardWin);
-
-    // Display the logo in the screen window
-    displayLogo(screenWin);
-    getch();  // Wait for user input to proceed
-    clearAndRedrawWindow(screenWin);
     wrefresh(dashboardWin);
 
     Blackboard blackboard;
@@ -48,14 +42,14 @@ int main() {
     blackboard.setInEnvironment("attack_power", 20);
     blackboard.setInEnvironment("heal_amount", 20);
 
-    Map gameMap(120, 120, &blackboard);  // Create a 120x120 map
-    gameMap.addVillain(13, 3, "<^>"); 
-    gameMap.addVillain(37, 7, "<^>");  
-    gameMap.addVillain(53, 5, "<^>");  
-    gameMap.addVillain(78, 2, "<^>");  
-    gameMap.addVillain(98, 6, "<^>"); 
+    Map gameMap(40, 10, &blackboard);  // Fixed map size to fit within the screen
+    gameMap.addVillain(3, 3, "<^>");
+    gameMap.addVillain(7, 7, "<^>");
+    gameMap.addVillain(5, 5, "<^>");
+    gameMap.addVillain(2, 2, "<^>");
+    gameMap.addVillain(6, 6, "<^>");
 
-    gameMap.initializeGrid();  // Initialize the grid before starting the game loop
+    gameMap.initializeGrid();
 
     BehaviorTree behaviorTree(&blackboard, &gameMap);
     
@@ -67,86 +61,73 @@ int main() {
     Node enemy(5, 5, 0);
 
     bool gameRunning = true;
-    int choice;
-
-    updateGame(gameMap, screenWin, SCREEN_WIDTH, SCREEN_HEIGHT - DASHBOARD_HEIGHT);
+    int choice = 0;
 
     while (gameRunning) {
-    //     // Display the menu in the dashboard window
         clearAndRedrawWindow(dashboardWin);
-        mvwprintw(dashboardWin, 1, 1, "1. Explore the black hole");
-        mvwprintw(dashboardWin, 2, 1, "2. Gather resources");
-        mvwprintw(dashboardWin, 3, 1, "3. Engage an enemy");
-        mvwprintw(dashboardWin, 4, 1, "4. Flee from an enemy");
-        mvwprintw(dashboardWin, 5, 1, "5. Exit");
-        mvwprintw(dashboardWin, 6, 1, "Enter your choice: ");
+        mvwprintw(dashboardWin, 1, 1, "1. Explore black hole  2. Gather resources");
+        mvwprintw(dashboardWin, 2, 1, "3. Engage enemy  4. Flee  5. Exit");
+        mvwprintw(dashboardWin, 3, 1, "Use arrow keys to move. Enter choice (1-5): ");
         wrefresh(dashboardWin);
 
-    //     // Get user input via ncurses
-        echo();  // Temporarily enable echo for user input
-        char choiceStr[2];
-        mvwgetnstr(dashboardWin, 6, 19, choiceStr, 1);
-        choice = choiceStr[0] - '0';
-        noecho();  // Disable echo again
+        int ch = wgetch(screenWin);
+        std::string direction = "";
 
-        switch (choice) {
-            case 1:
-                behaviorTree.exploreBlackHole(screenWin, dashboardWin);
-                break;
-            case 2:
-                clearAndRedrawWindow(screenWin);
-                mvwprintw(dashboardWin, 1, 1, "Gathering resources...");
-                wrefresh(dashboardWin);
-                behaviorTree.update();
-                getch();  // Wait for user input to proceed
-                clearAndRedrawWindow(dashboardWin);  // Clear dashboard after displaying message
-                break;
-            case 3:
-                clearAndRedrawWindow(screenWin);
-                mvwprintw(dashboardWin, 1, 1, "Engaging an enemy...");
-                wrefresh(dashboardWin);
-                behaviorTree.engageEnemy(screenWin);  // Engage an enemy
-                getch();  // Wait for user input to proceed
-                clearAndRedrawWindow(dashboardWin);  // Clear dashboard after displaying message
-                break;
-            case 4:
-                clearAndRedrawWindow(screenWin);
-                mvwprintw(dashboardWin, 1, 1, "Fleeing from an enemy...");
-                wrefresh(dashboardWin);
-                behaviorTree.update();
-                getch();  // Wait for user input to proceed
-                clearAndRedrawWindow(dashboardWin);  // Clear dashboard after displaying message
-                break;
-            case 5:
-                clearAndRedrawWindow(screenWin);
-                mvwprintw(dashboardWin, 1, 1, "Exiting the game...");
-                wrefresh(dashboardWin);
-                gameRunning = false;
-                getch();  // Wait for user input to proceed
-                clearAndRedrawWindow(dashboardWin);  // Clear dashboard after displaying message
-                break;
-            default:
-                clearAndRedrawWindow(screenWin);
-                mvwprintw(dashboardWin, 1, 1, "Invalid choice. Please try again.");
-                wrefresh(dashboardWin);
-                getch();  // Wait for user input to proceed
-                clearAndRedrawWindow(dashboardWin);  // Clear dashboard after displaying message
+        switch (ch) {
+            case KEY_UP: direction = "N"; break;
+            case KEY_DOWN: direction = "S"; break;
+            case KEY_LEFT: direction = "W"; break;
+            case KEY_RIGHT: direction = "E"; break;
+            case '1': case '2': case '3': case '4': case '5':
+                choice = ch - '0';
                 break;
         }
 
-    //     if (gameRunning) {
-    //         std::vector<Node> path = aStar.findPath(player, enemy);
-    //         ucs.allocateResources(100, 50);
-    //         geneticAlgorithm.evolve();
-            
-    //         updateGame(gameMap, screenWin, SCREEN_WIDTH, SCREEN_HEIGHT - DASHBOARD_HEIGHT);
-        // }
+        bool astronautMoved = false;
+        if (!direction.empty()) {
+            astronautMoved = gameMap.moveAstronaut(direction, dashboardWin);
+        } else if (choice != 0) {
+            switch (choice) {
+                case 1: behaviorTree.exploreBlackHole(screenWin, dashboardWin); break;
+                case 2: 
+                    mvwprintw(dashboardWin, 4, 1, "Gathering resources...");
+                    behaviorTree.update();
+                    break;
+                case 3:
+                    mvwprintw(dashboardWin, 4, 1, "Engaging an enemy...");
+                    behaviorTree.engageEnemy(dashboardWin);
+                    break;
+                case 4:
+                    mvwprintw(dashboardWin, 4, 1, "Fleeing from an enemy...");
+                    behaviorTree.update();
+                    break;
+                case 5:
+                    mvwprintw(dashboardWin, 4, 1, "Exiting the game...");
+                    gameRunning = false;
+                    break;
+            }
+            wrefresh(dashboardWin);
+            napms(1000);  // Pause to show message
+            choice = 0;
+        }
+
+        if (astronautMoved) {
+            gameMap.moveVillains(); // Move villains after the astronaut moves
+        }
+
+        updateGame(gameMap, screenWin, SCREEN_WIDTH, SCREEN_HEIGHT - DASHBOARD_HEIGHT);
+
+        if (gameRunning) {
+            std::vector<Node> path = aStar.findPath(player, enemy);
+            ucs.allocateResources(100, 50);
+            geneticAlgorithm.evolve();
+        }
+
+        napms(50);  // Control game speed
     }
 
     delwin(screenWin);
     delwin(dashboardWin);
-
-    endNcurses();  // End ncurses mode
-
+    endNcurses();
     return 0;
 }

@@ -43,14 +43,14 @@ void Map::initializeGrid() {
     for (int y = 0; y < grid_.size(); ++y) {
         for (int x = 0; x < grid_[y].size(); ++x) {
             if (grid_[y][x] == " ") {
-                grid_[y][x] = "*";
+                grid_[y][x] = ".";
             }
         }
     }
 }
 
 void Map::display(WINDOW* win, int winWidth, int winHeight) const {
-    clearAndRedrawWindow(win);  // Clear and redraw the window with borders
+    wclear(win); // Clear the window
 
     // Calculate the scaling factor for the grid to fit within the window
     double scaleX = static_cast<double>(winWidth - 2) / width_; // Adjust for border
@@ -61,23 +61,14 @@ void Map::display(WINDOW* win, int winWidth, int winHeight) const {
             int screenX = static_cast<int>(x * scaleX) + 1;  // Adjust coordinates for border
             int screenY = static_cast<int>(y * scaleY) + 1;  // Adjust coordinates for border
 
-            if (x == astronautX_ && y == astronautY_) {
+            if (grid_[y][x] == "@") {
                 mvwaddch(win, screenY, screenX, '@');  // Draw astronaut
-            } else {
-                bool isVillain = false;
-                for (const auto& villain : villainPositions_) {
-                    if (x == villain.first && y == villain.second) {
-                        mvwaddch(win, screenY, screenX, villainSymbols_.at(villain)[0]);  // Draw villain
-                        isVillain = true;
-                        break;
-                    }
-                }
-                if (!isVillain) {
-                    mvwaddch(win, screenY, screenX, grid_[y][x][0]);  // Draw grid element
-                }
+            } else if (grid_[y][x] != " ") {
+                mvwaddch(win, screenY, screenX, grid_[y][x][0]);  // Draw grid element or villain
             }
         }
     }
+    box(win, 0, 0); 
     wrefresh(win);
 }
 
@@ -103,7 +94,7 @@ bool Map::moveAstronaut(const std::string& direction, WINDOW* infoWin) {
         clearOldPosition(astronautX_, astronautY_);
         astronautX_ = newX;
         astronautY_ = newY;
-        grid_[astronautY_][astronautX_] = "@";  // Set the new position
+        grid_[astronautY_][astronautX_] = "@";
 
         // Check for collision with villains
         if (checkCollision(astronautX_, astronautY_)) {
@@ -112,6 +103,7 @@ bool Map::moveAstronaut(const std::string& direction, WINDOW* infoWin) {
         }
 
         moveVillains();  // Move villains when astronaut moves
+        initializeGrid(); // Update the grid
         return true;
     } else {
         mvwprintw(infoWin, 1, 1, "Move out of bounds.");
@@ -145,19 +137,21 @@ void Map::moveVillains() {
         int oldY = villain.second;
         
         // Generate a new random position within the grid
-        int newX = oldX + (std::rand() % 3 - 1);
-        int newY = oldY + (std::rand() % 3 - 1);
+        int newX = oldX + (std::rand() % 3 - 1); // -1, 0, or 1
+        int newY = oldY + (std::rand() % 3 - 1); // -1, 0, or 1
 
-        if (isWithinBounds(newX, newY) && !checkCollision(newX, newY)) {
+        // Ensure new position is within bounds and not colliding with astronaut
+        if (isWithinBounds(newX, newY) && (newX != astronautX_ || newY != astronautY_)) {
             newVillainPositions.emplace_back(newX, newY);
             newVillainSymbols[{newX, newY}] = villainSymbols_.at({oldX, oldY});
-            
-            // Clear old position in grid
-            grid_[oldY][oldX] = " ";
         } else {
+            // Keep the villain in the same position if the move is invalid
             newVillainPositions.push_back(villain);
             newVillainSymbols[villain] = villainSymbols_.at(villain);
         }
+
+        // Clear old position in grid
+        grid_[oldY][oldX] = " ";
     }
 
     // Update class members
@@ -172,7 +166,6 @@ void Map::moveVillains() {
     // Update villain positions in the blackboard
     blackboard_->setInEnvironment("villainPositions", villainPositions_);
 }
-
 bool Map::checkCollision(int x, int y) const {
     for (const auto& villain : villainPositions_) {
         if (x == villain.first && y == villain.second) {
