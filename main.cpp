@@ -36,6 +36,10 @@ int main() {
     wrefresh(screenWin);
     wrefresh(dashboardWin);
 
+    displayLogo(screenWin); // Display the logo at the beginning
+    getch();  // Wait for user input to proceed
+    clearAndRedrawWindow(screenWin);
+
     Blackboard blackboard;
     blackboard.setInEnvironment("health", 100);
     blackboard.setInEnvironment("enemy_health", 100);
@@ -64,6 +68,7 @@ int main() {
     int choice = 0;
 
     while (gameRunning) {
+        clearAndRedrawWindow(screenWin);
         clearAndRedrawWindow(dashboardWin);
         mvwprintw(dashboardWin, 1, 1, "1. Explore black hole  2. Gather resources");
         mvwprintw(dashboardWin, 2, 1, "3. Engage enemy  4. Flee  5. Exit");
